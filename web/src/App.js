@@ -83,6 +83,11 @@ function App() {
       } catch (e) { console.error('Config fetch fail', e); }
     };
     await Promise.all([fetchWeather(), fetchAQI(), fetchCalendar(), fetchConfig()]);
+
+    // Check if we actually got data
+    if (!weather && !airQuality) {
+      console.warn('Backend seems unreachable or returned no data.');
+    }
     setLoading(false);
   };
 
