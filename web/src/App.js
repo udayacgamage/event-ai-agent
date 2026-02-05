@@ -323,7 +323,9 @@ function App() {
                               {data.action_plan.map((item, i) => (
                                 <div key={i} className="mini-stat" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                                   <span style={{ fontSize: '1.2rem' }}>📍</span>
-                                  <span style={{ fontWeight: '500', lineHeight: '1.5', color: 'var(--text-primary)' }}>{item}</span>
+                                  <div style={{ fontWeight: '500', lineHeight: '1.5', color: 'var(--text-primary)', flex: 1 }}>
+                                    <ReactMarkdown>{item}</ReactMarkdown>
+                                  </div>
                                 </div>
                               ))}
                             </div>

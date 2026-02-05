@@ -23,7 +23,14 @@ module.exports = async (req, res) => {
         // Try AI if key exists
         const key = process.env.GROQ_API_KEY;
         if (key) {
-            const prompt = `Plan ${eventType} (${description}) in Colombo, Sri Lanka. Weather: ${weather.temperature}C. Respond ONLY with JSON: {"verdict":"PROCEED","summary":"...","action_plan":["..."],"why":"..."}`;
+            const prompt = `Plan ${eventType} (${description}) in Colombo, Sri Lanka. Weather: ${weather.temperature}C. 
+            
+            UNIFIED INSTRUCTIONS:
+            1. Respond ONLY with a single JSON object.
+            2. For multi-day trips, each day MUST be a SEPARATE item in the action_plan array (e.g., ["Day 1: ...", "Day 2: ..."]).
+            3. Use your internal knowledge of Colombo locations.
+            
+            JSON Structure: {"verdict":"PROCEED","summary":"...","action_plan":["Day 1:...","Day 2:..."],"why":"..."}`;
             const aiRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
