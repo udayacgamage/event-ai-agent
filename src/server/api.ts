@@ -17,6 +17,11 @@ let currentConfig = {
   coordinates: { lat: 6.9271, lon: 79.8612 }
 };
 
+// Health Check
+app.get('/api/ping', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 // Get current config
 app.get('/api/config', (req, res) => {
   res.json(currentConfig);

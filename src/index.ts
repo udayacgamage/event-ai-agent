@@ -30,6 +30,8 @@ async function main() {
 }
 
 export { app } from './server/api';
+import { app } from './server/api';
+export default app;
 
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   main().catch(console.error);
