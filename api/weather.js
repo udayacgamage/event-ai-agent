@@ -5,9 +5,11 @@ module.exports = async (req, res) => {
 
     try {
         const lat = 6.9271, lon = 79.8612;
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m&timezone=auto`);
+        // Added daily forecast to the request
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
         const data = await response.json();
         const c = data.current || {};
+        const d = data.daily || {};
 
         const hour = new Date().getHours();
         let traffic = { level: 'Moderate', description: 'Normal', estimatedDelayMinutes: 10 };
@@ -20,6 +22,7 @@ module.exports = async (req, res) => {
             condition: c.weather_code < 3 ? 'Clear' : 'Cloudy',
             description: c.weather_code < 3 ? 'Clear sky' : 'Overcast',
             suitable: c.weather_code < 50,
+            forecast: d,
             traffic,
             holidays: []
         });

@@ -225,6 +225,27 @@ function App() {
                   </div>
                 </div>
               </div>
+
+              {weather?.forecast?.time && (
+                <div style={{ marginTop: '24px' }}>
+                  <div className="mini-stat-label" style={{ marginBottom: '12px' }}>7-Day Forecast</div>
+                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '10px' }}>
+                    {weather.forecast.time.map((time, i) => (
+                      <div key={i} className="mini-stat" style={{ minWidth: '100px', flexShrink: 0, textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+                          {new Date(time).toLocaleDateString([], { weekday: 'short' })}
+                        </div>
+                        <div style={{ fontSize: '1.2rem', margin: '5px 0' }}>
+                          {Math.round(weather.forecast.temperature_2m_max[i])}°
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          Low: {Math.round(weather.forecast.temperature_2m_min[i])}°
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="card col-4">
@@ -350,11 +371,12 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="mini-stat">
                   <div className="mini-stat-label">Location Knowledge</div>
-                  <p className="stat-sub">AI is using Real-Time Knowledge of Colombo & surroundings.</p>
+                  <p className="stat-sub">AI is using Real-Time Knowledge of all Sri Lanka (Island-wide).</p>
                 </div>
                 <div className="mini-stat">
-                  <div className="mini-stat-label">Current Risk</div>
-                  <div className="stat-label">{weather?.precipitationProbability}% Precipitation</div>
+                  <div className="mini-stat-label">Predicted Outlook</div>
+                  <div className="stat-label">7-Day Forecast Active</div>
+                  <p className="stat-sub">AI considers upcoming rains/temps in its plans.</p>
                 </div>
               </div>
             </div>
