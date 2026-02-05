@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import './styles.css';
 
 const API_URL = process.env.NODE_ENV === 'production'
-  ? '' // On Vercel, API is served from the same origin 
+  ? 'https://event-ai-backend.vercel.app'
   : 'http://localhost:3001';
 
 function App() {
