@@ -6,45 +6,70 @@ module.exports = async (req, res) => {
 
     try {
         const { eventType, description } = req.body || {};
+        const lat = 6.9271, lon = 79.8612;
 
-        // Get live weather and 7-day forecast
-        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=6.9271&longitude=79.8612&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
+        // 1. Fetch live weather & 7-day forecast
+        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
         const wData = await wRes.json();
+
+        // 2. Fetch public holidays for Sri Lanka
+        let holidays = [];
+        try {
+            const currentYear = new Date().getFullYear();
+            const hRes = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/LK`);
+            if (hRes.ok) holidays = await hRes.json();
+        } catch (e) { console.error('Holiday fetch failed', e); }
+
+        // 3. Calculate Traffic based on current time
+        const hour = new Date().getHours();
+        let traffic = { level: 'Low', description: 'Light traffic', estimatedDelayMinutes: 5 };
+        if (hour >= 7 && hour <= 9) traffic = { level: 'Heavy', description: 'Morning rush hour congestion', estimatedDelayMinutes: 25 };
+        if (hour >= 17 && hour <= 19) traffic = { level: 'Heavy', description: 'Evening peak hour', estimatedDelayMinutes: 30 };
+        else if (hour >= 10 && hour <= 16) traffic = { level: 'Moderate', description: 'Typical urban movement', estimatedDelayMinutes: 12 };
 
         const weather = {
             temperature: wData.current?.temperature_2m || 0,
-            condition: 'Clear',
+            condition: 'Synced',
             forecast: wData.daily || {}
         };
 
-        // Default response
+        // 4. Default AI result if key is missing
         let analysis = JSON.stringify({
             verdict: 'PROCEED',
-            summary: 'Good conditions for your activity across Sri Lanka.',
-            action_plan: ['Explore Kandy Temple of the Tooth', 'Visit Ella Nine Arch Bridge', 'Hike Little Adam\'s Peak'],
-            why: 'Weather looks promising for island-wide travel.'
+            summary: 'Conditions analyzed for Sri Lanka.',
+            action_plan: ['Explore local landmarks'],
+            why: 'System check complete.'
         });
 
-        // Try AI if key exists
+        // Try AI with all context
         const key = process.env.GROQ_API_KEY;
         if (key) {
-            const prompt = `Plan ${eventType} (${description}) in Sri Lanka. 
+            const prompt = `Task: Plan ${eventType} (${description}) in Sri Lanka. 
             
-            Current Weather (Colombo/Detected): ${weather.temperature}C.
-            7-Day Forecast Data: ${JSON.stringify(weather.forecast)}
+            Strict Data Context to Consider:
+            - Current Temp: ${weather.temperature}C
+            - 7-Day Predicted Weather: ${JSON.stringify(weather.forecast)}
+            - Real-Time Traffic Status: ${traffic.level} (${traffic.description})
+            - Upcoming/Current Public Holidays: ${JSON.stringify(holidays.slice(0, 5))}
             
             UNIFIED INSTRUCTIONS:
-            1. Respond ONLY with a single JSON object.
-            2. DO NOT limit suggestions to Colombo. You are encouraged to suggest island-wide destinations (e.g., Kandy, Ella, Nuwara Eliya, Jaffna, Galle, Sigiriya) if they suit the trip.
-            3. For multi-day trips, each day MUST be a SEPARATE item in the action_plan array (e.g., ["Day 1: ...", "Day 2: ..."]).
-            4. Consider the 7-day forecast provided when planning.
+            1. Respond ONLY with a single JSON object (No Markdown).
+            2. Suggest specific locations throughout Sri Lanka (Not just Colombo).
+            3. CRITICAL: If a holiday is detected, warn about potential crowds or closed venues.
+            4. CRITICAL: If traffic is Heavy, suggest activities that minimize travel time or start early.
+            5. CRITICAL: If rain is predicted in the forecast, suggest indoor alternatives.
             
-            JSON Structure: {"verdict":"PROCEED","summary":"...","action_plan":["Day 1:...","Day 2:..."],"why":"..."}`;
+            JSON Structure: {"verdict":"PROCEED/CAUTION/STOP","summary":"...","action_plan":["Day 1:...","Day 2:..."],"why":"..."}`;
 
             const aiRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: prompt }], max_tokens: 800 })
+                body: JSON.stringify({
+                    model: 'llama-3.1-8b-instant',
+                    messages: [{ role: 'system', content: 'You are a master logistics and event planner for Sri Lanka. You check weather, traffic, and holidays before every plan.' }, { role: 'user', content: prompt }],
+                    max_tokens: 1000,
+                    temperature: 0.2
+                })
             });
             const aiData = await aiRes.json();
             if (aiData.choices?.[0]?.message?.content) {
@@ -52,11 +77,13 @@ module.exports = async (req, res) => {
             }
         }
 
-        const hour = new Date().getHours();
-        let traffic = { level: 'Moderate', description: 'Normal', estimatedDelayMinutes: 10 };
-        if (hour >= 7 && hour <= 9) traffic = { level: 'Heavy', description: 'Morning rush', estimatedDelayMinutes: 25 };
-
-        res.status(200).json({ analysis, weather, airQuality: { aqi: 2, level: 'Good', suitable: true }, traffic });
+        res.status(200).json({
+            analysis,
+            weather,
+            airQuality: { aqi: 2, level: 'Good' },
+            traffic,
+            holidays: holidays.slice(0, 3)
+        });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

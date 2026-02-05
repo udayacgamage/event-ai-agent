@@ -5,11 +5,30 @@ module.exports = async (req, res) => {
 
     try {
         const lat = 6.9271, lon = 79.8612;
-        // Added daily forecast to the request
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
-        const data = await response.json();
-        const c = data.current || {};
-        const d = data.daily || {};
+
+        // Fetch Weather
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const wData = await weatherRes.json();
+
+        // Fetch Holidays (Sri Lanka)
+        let holidays = [];
+        try {
+            const year = new Date().getFullYear();
+            const holidayRes = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/LK`);
+            if (holidayRes.ok) {
+                const allHolidays = await holidayRes.json();
+                // Filter for upcoming/recent holidays (within 30 days)
+                const now = new Date();
+                holidays = allHolidays.filter(h => {
+                    const hDate = new Date(h.date);
+                    const diff = Math.abs(hDate - now) / (1000 * 60 * 60 * 24);
+                    return diff < 30;
+                }).slice(0, 3);
+            }
+        } catch (e) { console.error('Holiday fetch failed'); }
+
+        const c = wData.current || {};
+        const d = wData.daily || {};
 
         const hour = new Date().getHours();
         let traffic = { level: 'Moderate', description: 'Normal', estimatedDelayMinutes: 10 };
@@ -24,7 +43,7 @@ module.exports = async (req, res) => {
             suitable: c.weather_code < 50,
             forecast: d,
             traffic,
-            holidays: []
+            holidays
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
