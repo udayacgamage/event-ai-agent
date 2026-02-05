@@ -139,12 +139,30 @@ header {
   grid-column: span 6;
 }
 
+.col-7 {
+  grid-column: span 7;
+}
+
 .col-8 {
   grid-column: span 8;
 }
 
 .col-12 {
   grid-column: span 12;
+}
+
+@media (max-width: 1024px) {
+
+  .col-4,
+  .col-6,
+  .col-7,
+  .col-8 {
+    grid-column: span 12;
+  }
+
+  .app {
+    padding: 16px;
+  }
 }
 
 /* Dashboard Cards */

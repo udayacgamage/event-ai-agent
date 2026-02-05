@@ -315,25 +315,25 @@ function App() {
                             </div>
                           </div>
                         </div>
-                        <div className="grid">
-                          {data.action_plan?.length > 0 && (
-                            <div className="card col-7">
-                              <div className="card-title">🚀 Proposed Strategy</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                {data.action_plan.map((item, i) => (
-                                  <div key={i} className="mini-stat" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)' }}>
-                                    <span style={{ fontSize: '1.1rem', marginTop: '2px' }}>📍</span>
-                                    <span style={{ fontWeight: '500', lineHeight: '1.4' }}>{item}</span>
-                                  </div>
-                                ))}
-                              </div>
+
+                        {data.action_plan?.length > 0 && (
+                          <div className="card">
+                            <div className="card-title">🚀 Proposed Strategy</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                              {data.action_plan.map((item, i) => (
+                                <div key={i} className="mini-stat" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
+                                  <span style={{ fontSize: '1.2rem' }}>📍</span>
+                                  <span style={{ fontWeight: '500', lineHeight: '1.5', color: 'var(--text-primary)' }}>{item}</span>
+                                </div>
+                              ))}
                             </div>
-                          )}
-                          <div className={data.action_plan?.length > 0 ? "card col-5" : "card col-12"}>
-                            <div className="card-title">🧠 Intelligence Insights</div>
-                            <div className="prose" style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.7' }}>
-                              <ReactMarkdown>{data.why || data.summary}</ReactMarkdown>
-                            </div>
+                          </div>
+                        )}
+
+                        <div className="card">
+                          <div className="card-title">🧠 Intelligence Insights</div>
+                          <div className="prose" style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.8' }}>
+                            <ReactMarkdown>{data.why || data.summary}</ReactMarkdown>
                           </div>
                         </div>
                       </div>
